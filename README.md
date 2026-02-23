@@ -1,6 +1,6 @@
 # Covert SSH Scanner
 
-> Author: **tunelko**
+[🇬🇧 English version](README.en.md)
 
 Herramienta de analisis de red que detecta automaticamente que canales encubiertos SSH estan disponibles en un entorno de red concreto y recomienda la tecnica optima de evasion.
 
