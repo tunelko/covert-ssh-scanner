@@ -14,18 +14,19 @@ Network analysis tool that automatically detects which covert SSH channels are a
 2. [How it works](#how-it-works)
 3. [Prerequisites](#prerequisites)
 4. [Installation](#installation)
-5. [Usage guide](#usage-guide)
+5. [Interactive menu and Makefile](#interactive-menu-and-makefile)
+6. [Usage guide](#usage-guide)
    - [First scan (simulation mode)](#1-first-scan-simulation-mode)
    - [Real scan against a target](#2-real-scan-against-a-target)
    - [Generate configurations](#3-generate-configurations)
    - [Steganography module](#4-steganography-module)
-6. [Command reference](#command-reference)
-7. [Project architecture](#project-architecture)
-8. [How the decision engine works](#how-the-decision-engine-works)
-9. [Steganography module in detail](#steganography-module-in-detail)
-10. [Tests](#tests)
-11. [FAQ](#faq)
-12. [License](#license)
+7. [Command reference](#command-reference)
+8. [Project architecture](#project-architecture)
+9. [How the decision engine works](#how-the-decision-engine-works)
+10. [Steganography module in detail](#steganography-module-in-detail)
+11. [Tests](#tests)
+12. [FAQ](#faq)
+13. [License](#license)
 
 ---
 
@@ -197,6 +198,48 @@ The `docker-compose.yml` file defines three services:
 The `scanner` service uses `network_mode: host` for direct access to the host network, required for TCP/DNS/ICMP probes to work against real targets. It also has `NET_RAW` and `NET_ADMIN` capabilities for ICMP probes and packet capture.
 
 Generated configurations persist in `./output/` via a Docker volume.
+
+---
+
+## Interactive menu and Makefile
+
+The project includes a **Makefile** and an **interactive wizard** (`menu.sh`) so you don't have to remember long Docker commands.
+
+### Interactive wizard
+
+```bash
+make              # launches the interactive menu
+make menu         # equivalent
+```
+
+The wizard guides you step by step: asks for target, domain, technique, etc. and shows the command before executing. If [charmbracelet/gum](https://github.com/charmbracelet/gum) is installed, it uses enhanced menus; otherwise, it works with plain ANSI.
+
+```bash
+make install-gum  # (optional) install gum for prettier menus
+```
+
+### Direct targets (for advanced users)
+
+| Target | Description | Example |
+|--------|-------------|---------|
+| `make build` | Build images | `make build` |
+| `make test` | Run 36 tests | `make test` |
+| `make scan` | Scan network | `make scan TARGET=203.0.113.50 DOMAIN=example.com` |
+| `make scan-simulate` | Simulated scan | `make scan-simulate TARGET=203.0.113.50` |
+| `make generate` | Generate configs | `make generate TARGET=203.0.113.50 TECHNIQUE=websocket` |
+| `make stego-demo` | Steganography demo | `make stego-demo` |
+| `make stego-cover` | Cover traffic demo | `make stego-cover` |
+| `make stego-server` | Stego server (background) | `make stego-server` |
+| `make stego-client` | Stego client | `make stego-client STEGO_TARGET=198.51.100.10` |
+| `make stego-down` | Stop services | `make stego-down` |
+| `make shell` | Shell into container | `make shell` |
+| `make logs` | View logs | `make logs` |
+| `make clean` | Stop all and clean | `make clean` |
+| `make help` | Show all targets | `make help` |
+
+**Optional variables** for `scan`: `DOMAIN`, `USER`, `TIMEOUT`, `FULL=1`, `SIMULATE=1`, `DRY_RUN=1`, `NO_GENERATE=1`.
+
+**Optional variables** for `generate`: `TECHNIQUE` (default: auto), `DOMAIN`, `USER`, `DOCKER=1`, `SIMULATE=1`.
 
 ---
 
@@ -407,6 +450,8 @@ stego --mode {demo,server,client,http-cover}
 
 ```
 covert-ssh-scanner/
+├── Makefile                      # Make targets (docker compose shortcuts)
+├── menu.sh                       # Interactive wizard (gum/ANSI)
 ├── Dockerfile                    # Docker image (python:3.12-slim + deps)
 ├── docker-compose.yml            # 3 services: scanner, stego-srv, tests
 │

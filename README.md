@@ -14,17 +14,18 @@ Herramienta de analisis de red que detecta automaticamente que canales encubiert
 2. [Como funciona](#como-funciona)
 3. [Requisitos previos](#requisitos-previos)
 4. [Instalacion](#instalacion)
-5. [Guia de uso](#guia-de-uso)
+5. [Menu interactivo y Makefile](#menu-interactivo-y-makefile)
+6. [Guia de uso](#guia-de-uso)
    - [Primer escaneo (modo simulacion)](#1-primer-escaneo-modo-simulacion)
    - [Escaneo real contra un objetivo](#2-escaneo-real-contra-un-objetivo)
    - [Generar configuraciones](#3-generar-configuraciones)
    - [Modulo esteganografico](#4-modulo-esteganografico)
-6. [Referencia de comandos](#referencia-de-comandos)
-7. [Arquitectura del proyecto](#arquitectura-del-proyecto)
-8. [Como funciona el motor de decision](#como-funciona-el-motor-de-decision)
-9. [Modulo esteganografico en detalle](#modulo-esteganografico-en-detalle)
-10. [Tests](#tests)
-11. [Preguntas frecuentes](#preguntas-frecuentes)
+7. [Referencia de comandos](#referencia-de-comandos)
+8. [Arquitectura del proyecto](#arquitectura-del-proyecto)
+9. [Como funciona el motor de decision](#como-funciona-el-motor-de-decision)
+10. [Modulo esteganografico en detalle](#modulo-esteganografico-en-detalle)
+11. [Tests](#tests)
+12. [Preguntas frecuentes](#preguntas-frecuentes)
     - [Como decide que tecnica recomendar?](#como-decide-la-herramienta-que-tecnica-recomendar)
     - [Por que un puerto abierto no basta?](#por-que-un-puerto-abierto-no-basta-para-tunelizar-ssh)
     - [Como funciona el modulo esteganografico?](#como-funciona-el-modulo-esteganografico)
@@ -200,6 +201,48 @@ El fichero `docker-compose.yml` define tres servicios:
 El servicio `scanner` usa `network_mode: host` para tener acceso directo a la red del host, necesario para que las sondas TCP/DNS/ICMP funcionen contra objetivos reales. Ademas tiene las capabilities `NET_RAW` y `NET_ADMIN` para sondas ICMP y captura de paquetes.
 
 Las configuraciones generadas se persisten en `./output/` mediante un volumen Docker.
+
+---
+
+## Menu interactivo y Makefile
+
+El proyecto incluye un **Makefile** y un **wizard interactivo** (`menu.sh`) para no tener que recordar los comandos Docker largos.
+
+### Wizard interactivo
+
+```bash
+make              # lanza el menu interactivo
+make menu         # equivalente
+```
+
+El wizard guia paso a paso: pide target, dominio, tecnica, etc. y muestra el comando antes de ejecutarlo. Si esta instalado [charmbracelet/gum](https://github.com/charmbracelet/gum) se usa para menus mejorados; si no, funciona con ANSI puro.
+
+```bash
+make install-gum  # (opcional) instala gum para menus mas bonitos
+```
+
+### Targets directos (para usuarios avanzados)
+
+| Target | Descripcion | Ejemplo |
+|--------|-------------|---------|
+| `make build` | Construir imagenes | `make build` |
+| `make test` | Ejecutar 36 tests | `make test` |
+| `make scan` | Escanear red | `make scan TARGET=203.0.113.50 DOMAIN=example.com` |
+| `make scan-simulate` | Escaneo simulado | `make scan-simulate TARGET=203.0.113.50` |
+| `make generate` | Generar configs | `make generate TARGET=203.0.113.50 TECHNIQUE=websocket` |
+| `make stego-demo` | Demo esteganografia | `make stego-demo` |
+| `make stego-cover` | Demo trafico cobertura | `make stego-cover` |
+| `make stego-server` | Servidor stego (background) | `make stego-server` |
+| `make stego-client` | Cliente stego | `make stego-client STEGO_TARGET=198.51.100.10` |
+| `make stego-down` | Parar servicios | `make stego-down` |
+| `make shell` | Shell en contenedor | `make shell` |
+| `make logs` | Ver logs | `make logs` |
+| `make clean` | Parar todo y limpiar | `make clean` |
+| `make help` | Mostrar todos los targets | `make help` |
+
+**Variables opcionales** para `scan`: `DOMAIN`, `USER`, `TIMEOUT`, `FULL=1`, `SIMULATE=1`, `DRY_RUN=1`, `NO_GENERATE=1`.
+
+**Variables opcionales** para `generate`: `TECHNIQUE` (default: auto), `DOMAIN`, `USER`, `DOCKER=1`, `SIMULATE=1`.
 
 ---
 
@@ -410,6 +453,8 @@ stego --mode {demo,server,client,http-cover}
 
 ```
 covert-ssh-scanner/
+├── Makefile                      # Targets Make (atajos docker compose)
+├── menu.sh                       # Wizard interactivo (gum/ANSI)
 ├── Dockerfile                    # Imagen Docker (python:3.12-slim + deps)
 ├── docker-compose.yml            # 3 servicios: scanner, stego-srv, tests
 │
