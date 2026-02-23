@@ -4,6 +4,8 @@
 
 Network analysis tool that automatically detects which covert SSH channels are available in a given network environment and recommends the optimal evasion technique.
 
+> **Disclaimer:** This tool has been developed solely for academic and security research purposes. It is intended for use in controlled environments, test labs, and authorized audits only. The author assumes no responsibility for any misuse or illegal use of this tool. Using this tool against systems without explicit authorization from the owner is illegal and may constitute a criminal offense. Use it responsibly and ethically.
+
 ---
 
 ## Table of contents

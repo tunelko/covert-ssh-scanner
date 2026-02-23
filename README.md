@@ -4,6 +4,8 @@
 
 Herramienta de analisis de red que detecta automaticamente que canales encubiertos SSH estan disponibles en un entorno de red concreto y recomienda la tecnica optima de evasion.
 
+> **Aviso legal:** Esta herramienta ha sido desarrollada con fines exclusivamente academicos y de investigacion en seguridad informatica. Su uso esta destinado a entornos controlados, laboratorios de pruebas y auditorias autorizadas. El autor no se hace responsable del uso indebido o ilegal que pueda hacerse de ella. Utilizar esta herramienta contra sistemas sin autorizacion explicita del propietario es ilegal y puede constituir un delito. Usala de forma responsable y etica.
+
 ---
 
 ## Tabla de contenidos
