@@ -1,0 +1,68 @@
+###############################################################################
+# Covert SSH Scanner — Docker Compose
+#
+# Servicios:
+#   scanner   — Contenedor principal para ejecutar escaneos
+#   stego-srv — Servidor HTTP esteganografico (PoC)
+#   tests     — Ejecuta la suite de tests y sale
+#
+# Puertos usados (verificados libres en el host):
+#   9080  → stego-srv  (HTTP stego server)
+#
+# Puertos EVITADOS por estar ocupados:
+#   22    → sshd del host
+#   53    → systemd-resolved
+#   2376  → dockerd
+#   6010  → X11 forwarding
+#   8080  → lab_nginx (contenedor existente)
+###############################################################################
+
+services:
+
+  # ── Scanner principal ─────────────────────────────────────────────────────
+  # Uso interactivo: ejecuta cualquier subcomando del scanner
+  #
+  #   docker compose run --rm scanner scan --target 203.0.113.50 --simulate
+  #   docker compose run --rm scanner scan --target 10.0.0.1 --domain x.com --full
+  #   docker compose run --rm scanner generate --target 10.0.0.1 --technique auto --simulate
+  #   docker compose run --rm scanner stego --mode demo
+  #   docker compose run --rm scanner stego --mode http-cover
+  #
+  scanner:
+    build: .
+    container_name: covert-scanner
+    network_mode: host          # Acceso directo a la red del host (necesario para probes reales)
+    cap_add:
+      - NET_RAW               # Para ICMP raw sockets (scapy)
+      - NET_ADMIN              # Para packet capture
+    volumes:
+      - ./output:/app/output   # Persistir configs generadas
+    # Sin command: se pasa como argumento en 'docker compose run'
+
+  # ── Servidor esteganografico (PoC) ────────────────────────────────────────
+  # Arranca el servidor HTTP stego que recibe datos ocultos en peticiones HTTP
+  # y los reenvía al servicio SSH local del host.
+  #
+  #   docker compose up stego-srv
+  #
+  # Luego desde el cliente:
+  #   docker compose run --rm scanner stego --mode client --target <host-ip> --port 9080
+  #
+  stego-srv:
+    build: .
+    container_name: covert-stego-server
+    ports:
+      - "9080:9080"            # Puerto 9080 (8080 ocupado por lab_nginx)
+    command: ["stego", "--mode", "server", "--port", "9080", "--ssh-port", "22"]
+    restart: unless-stopped
+
+  # ── Tests ─────────────────────────────────────────────────────────────────
+  # Ejecuta pytest y sale.
+  #
+  #   docker compose run --rm tests
+  #
+  tests:
+    build: .
+    container_name: covert-tests
+    entrypoint: ["python", "-m", "pytest"]
+    command: ["tests/", "-v", "--tb=short"]
